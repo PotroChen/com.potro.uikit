@@ -1,0 +1,8 @@
+Library
+Temp
+Logs
+obj
+*.csproj
+.vs
+.vsconfig
+/ProjectSettings
