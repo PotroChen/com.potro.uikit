@@ -4,7 +4,7 @@
     "displayName": "UIKit",
 	"dependencies": 
 	{
-		"com.potro.reskit":https://github.com/PotroChen/ResKit.git?path=Assets/
+		"com.potro.reskit":"https://github.com/PotroChen/ResKit.git?path=Assets/"
 	},
     "author": {
         "name": "Potro",
