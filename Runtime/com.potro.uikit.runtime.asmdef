@@ -2,7 +2,7 @@
     "name": "com.potro.uikit.runtime",
     "rootNamespace": "",
     "references": [
-        "com.potro.reskit.runtime"
+        "Unity.Addressables"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,13 +1,12 @@
 {
-    "name": "com.potro.uikit",
-    "version": "0.0.1",
-    "displayName": "UIKit",
-	"dependencies": 
-	{
-		"com.potro.reskit":"https://github.com/PotroChen/ResKit.git?path=Assets/"
-	},
-    "author": {
-        "name": "Potro",
-        "email": "1400539511@qq.com"
-    }
+  "name": "com.potro.uikit",
+  "version": "0.0.1",
+  "displayName": "UIKit",
+  "author": {
+    "name": "Potro",
+    "email": "1400539511@qq.com"
+  },
+  "dependencies": {
+    "com.unity.addressables": "1.19.19"
+  }
 }

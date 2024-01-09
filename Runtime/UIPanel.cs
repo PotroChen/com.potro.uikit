@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using GameFramework.ResKit;
+using UnityEngine.AddressableAssets;
 
 namespace GameFramework.UIKit
 {
@@ -56,7 +56,7 @@ namespace GameFramework.UIKit
         {
             Destroy(this.gameObject);
             panels.Remove(this.name);
-            resLoader.UnLoadAll();
+            resLoader.ReleaseAllAssets();
         }
 
 

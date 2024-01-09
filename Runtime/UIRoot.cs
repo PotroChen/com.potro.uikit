@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using GameFramework.ResKit;
 
 namespace GameFramework.UIKit
 {
@@ -57,9 +56,6 @@ namespace GameFramework.UIKit
                 Destroy(this);
                 return;
             }
-
-            ResMgr.Init();
-            //UIPanel.OpenPanel<UIGamePanel>();
         }
 
         // Update is called once per frame
