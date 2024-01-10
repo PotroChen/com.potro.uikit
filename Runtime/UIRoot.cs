@@ -56,6 +56,7 @@ namespace GameFramework.UIKit
                 Destroy(this);
                 return;
             }
+            DontDestroyOnLoad(gameObject);
         }
 
         // Update is called once per frame
