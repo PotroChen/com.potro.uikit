@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,63 +7,40 @@ namespace GameFramework.UIKit
 {
     public enum UILayer
     {
-        Bottom,
-        Common,
+        Normal,
+        Message,
         Top
     }
 
     public class UIRoot : MonoBehaviour
     {
+        [SerializeField]
+        private Transform normalLayer;
 
-        private static UIRoot instance;
+        [SerializeField]
+        private Transform messageLayer;
 
-        public static Transform BottomLayer
+        [SerializeField]
+        private Transform topLayer;
+
+        internal void AttachToLayer(GameObject uiGo, UILayer uILayer)
         {
-            get
+            Transform layerTra = null;
+            switch (uILayer)
             {
-                return instance.bottomLayer;
+                case UILayer.Normal:
+                    layerTra = normalLayer;
+                    break;
+                case UILayer.Message:
+                    layerTra = messageLayer;
+                    break;
+                case UILayer.Top:
+                    layerTra = topLayer;
+                    break;
+                default:
+                    throw new Exception("");
             }
-        }
-
-        public static Transform CommonLayer
-        {
-            get
-            {
-                return instance.commonLayer;
-            }
-        }
-
-        public static Transform TopLayer
-        {
-            get
-            {
-                return instance.topLayer;
-            }
-        }
-
-        public Transform bottomLayer;
-        public Transform commonLayer;
-        public Transform topLayer;
-
-
-
-        // Use this for initialization
-        void Start()
-        {
-            if (!instance)
-                instance = this;
-            else
-            {
-                Destroy(this);
-                return;
-            }
-            DontDestroyOnLoad(gameObject);
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
+            uiGo.transform.SetParent(layerTra, false);
         }
     }
 
