@@ -27,7 +27,7 @@ namespace GameFramework.UIKit
         protected abstract PanelConfig ConfigData{get;}
 
         //界面初始化数据
-        protected object m_InitData = null;
+        protected IData m_InitData = null;
 
         protected GameObject m_Root;
 
@@ -37,7 +37,7 @@ namespace GameFramework.UIKit
         }
 
 
-        internal virtual void Load(object initData)
+        internal virtual void Load(IData initData)
         {
             if (initData != null)
             {
@@ -86,7 +86,7 @@ namespace GameFramework.UIKit
             OnHide();
         }
 
-        protected abstract void OnLoad(object data);
+        protected abstract void OnLoad(IData data);
 
         protected abstract void OnCreated();
 

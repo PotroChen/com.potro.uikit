@@ -22,7 +22,7 @@ namespace GameFramework.UIKit
         /// <summary>
         /// 切换下一个界面
         /// </summary>
-        public static void Goto<TPanel>(object data = null) where TPanel : UIPanel, new()
+        public static void Goto<TPanel>(IData data = null) where TPanel : UIPanel, new()
         {
             instance.Goto_Internal<TPanel>(data);
         }
@@ -30,7 +30,7 @@ namespace GameFramework.UIKit
         /// <summary>
         /// 返回上一界面
         /// </summary>
-        public static void Goback(object data = null)
+        public static void Goback(IData data = null)
         {
             instance.Goback_internal(data);
         }
@@ -67,7 +67,7 @@ namespace GameFramework.UIKit
             }
         }
 
-        private void Goto_Internal<TPanel>(object data) where TPanel : UIPanel, new()
+        private void Goto_Internal<TPanel>(IData data) where TPanel : UIPanel, new()
         {
             string panelName = UIPanel.GetName<TPanel>();
 
@@ -111,7 +111,7 @@ namespace GameFramework.UIKit
         /// <summary>
         /// 返回上一界面
         /// </summary>
-        private void Goback_internal(object data = null)
+        private void Goback_internal(IData data = null)
         {
             if (CurrentPanel == null)
             {
