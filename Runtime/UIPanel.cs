@@ -8,7 +8,7 @@ namespace GameFramework.UIKit
     {
         public string Name { get; private set; }
 
-        protected ResLoader resLoader;
+        protected ResLoader resLoader = new ResLoader();
 
         public struct PanelConfig
         {
