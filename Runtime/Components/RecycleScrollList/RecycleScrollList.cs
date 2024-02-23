@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using GluonGui;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,6 +38,7 @@ namespace GameFramework.UIKit
         private GameObject m_RecycleItemTemplate;
         public GameObject RecycleItemTemplate => m_RecycleItemTemplate;
 
+
         [SerializeField]
         private ScrollType m_ScrollType = ScrollType.Vertical;
         /// <summary>
@@ -56,20 +58,56 @@ namespace GameFramework.UIKit
         private bool m_AutoCalculateConstraintCount = true;
 
         [SerializeField]
-        private uint m_Count;
-        public uint Count => m_Count;
+        private int m_Count;
+        public int Count => m_Count;
 
-        [ContextMenu("预览")]
-        private void Preview()
+        private GameObjectPool m_Pool;
+
+        public void FillGrid(int count)
         {
-            SetupLayout();
+            m_Count = count;
+            Init();
+        }
 
-            for (int i = 0; i < Count; i++)
+        private void Start()
+        {
+            Init();
+        }
+
+        private void OnDestroy()
+        {
+            if (m_Pool != null)
             {
-                var item = GameObject.Instantiate(m_RecycleItemTemplate, m_GridLayout.transform);
+                m_Pool.Dispose();
             }
         }
 
+        private void Init()
+        {
+            ScrollRect.onValueChanged.RemoveListener(OnValueChange);
+            ScrollRect.onValueChanged.AddListener(OnValueChange);
+
+            //计算并设置锚点和长宽
+            SetupLayout();
+            //初始化对象池
+            int viewportMaxItemNumber = GetViewportMaxItemNumber();
+            int cachedNumber = m_Count < viewportMaxItemNumber ? m_Count : viewportMaxItemNumber;
+
+            if (m_Pool == null)
+                m_Pool = new GameObjectPool(m_RecycleItemTemplate, cachedNumber, m_GridLayout.transform);
+            else
+                m_Pool.MaxSize = cachedNumber;
+            m_Pool.WarmUp();
+
+        }
+
+        private void OnValueChange(Vector2 position)
+        {
+
+        }
+
+        #region SetupLayout(计算并设置锚点和长宽)
+        //计算并设置锚点和长宽
         private void SetupLayout()
         {
             if (m_SrollRect == null || m_GridLayout == null)
@@ -93,6 +131,8 @@ namespace GameFramework.UIKit
                     gridLayoutRectTra.anchorMax = new Vector2(1f, 0f);
                     gridLayoutRectTra.pivot = new Vector2(0f, 0f);//Pivot:left bottom
                 }
+                gridLayoutRectTra.sizeDelta = new Vector2(0f, 0f);
+                gridLayoutRectTra.ForceUpdateRectTransforms();//强制Update使宽度正确
 
                 m_GridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
                 m_GridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
@@ -121,6 +161,8 @@ namespace GameFramework.UIKit
                     gridLayoutRectTra.anchorMax = new Vector2(1f, 1f);
                     gridLayoutRectTra.pivot = new Vector2(1f, 1f);//Pivot:right top
                 }
+                gridLayoutRectTra.sizeDelta = new Vector2(0f, 0f);
+                gridLayoutRectTra.ForceUpdateRectTransforms();//强制Update使高度正确
 
                 m_GridLayout.startAxis = GridLayoutGroup.Axis.Vertical;
                 m_GridLayout.constraint = GridLayoutGroup.Constraint.FixedRowCount;
@@ -177,6 +219,42 @@ namespace GameFramework.UIKit
         {
             return m_GridLayout.cellSize.x + m_GridLayout.spacing.x;
         }
+        #endregion
+
+        //计算Viewport区域最大显示的Item数量
+        private int GetViewportMaxItemNumber()
+        {
+            if (m_ScrollType == ScrollType.Vertical)
+            {
+                float height = ScrollRect.viewport.rect.height;
+                int rowCount = Mathf.CeilToInt(height / GetCellSizeAndSpaceY());
+                return m_GridLayout.constraintCount * rowCount;
+            }
+            else
+            {
+                float width = ScrollRect.viewport.rect.width;
+                int colCount = Mathf.CeilToInt(width / GetCellSizeAndSpaceX());
+                return m_GridLayout.constraintCount * colCount;
+            }
+        }
+
+#if UNITY_EDITOR
+        //private void OnValidate()
+        //{
+        //    Init();
+        //}
+
+        [ContextMenu("预览")]
+        private void Preview()
+        {
+            SetupLayout();
+
+            for (int i = 0; i < Count; i++)
+            {
+                var item = GameObject.Instantiate(m_RecycleItemTemplate, m_GridLayout.transform);
+            }
+        }
+#endif
     }
 
 }

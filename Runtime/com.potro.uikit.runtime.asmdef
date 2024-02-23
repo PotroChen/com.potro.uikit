@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "Unity.Addressables",
-        "Unity.ResourceManager"
+        "Unity.ResourceManager",
+        "com.potro.core.runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

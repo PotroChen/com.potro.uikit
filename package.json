@@ -7,6 +7,7 @@
     "email": "1400539511@qq.com"
   },
   "dependencies": {
-    "com.unity.addressables": "1.19.19"
+    "com.unity.addressables": "1.19.19",
+    "com.potro.core": "1.19.19"
   }
 }
