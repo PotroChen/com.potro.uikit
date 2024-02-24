@@ -8,6 +8,7 @@ namespace GameFramework.UIKit
     [CustomEditor(typeof(GridLayoutGroupForRecycleScrollList), true)]
     public class GridLayoutGroupForRecycleScrollListEditor : Editor
     {
+        SerializedProperty m_Padding;
         SerializedProperty m_CellSize;
         SerializedProperty m_Spacing;
         SerializedProperty m_Constraint;
@@ -15,6 +16,7 @@ namespace GameFramework.UIKit
 
         protected virtual void OnEnable()
         {
+            m_Padding = serializedObject.FindProperty("m_Padding");
             m_CellSize = serializedObject.FindProperty("m_CellSize");
             m_Spacing = serializedObject.FindProperty("m_Spacing");
             m_Constraint = serializedObject.FindProperty("m_Constraint");
@@ -24,6 +26,7 @@ namespace GameFramework.UIKit
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            EditorGUILayout.PropertyField(m_Padding, true);
             EditorGUILayout.PropertyField(m_CellSize, true);
             EditorGUILayout.PropertyField(m_Spacing, true);
 

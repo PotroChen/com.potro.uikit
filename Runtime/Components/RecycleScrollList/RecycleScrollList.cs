@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using GluonGui;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.UI;
 
 namespace GameFramework.UIKit
@@ -61,12 +62,17 @@ namespace GameFramework.UIKit
         private int m_Count;
         public int Count => m_Count;
 
-        private GameObjectPool m_Pool;
+        private int m_ViewportMaxItemNumber;
+        private float m_CellSizeAndSpaceX;
+        private float m_CellSizeAndSpaceY;
+        private GameObjectPool m_ItemPool;
+        private List<IPoolObject<GameObject>> m_ActiveItems = new List<IPoolObject<GameObject>>();
 
         public void FillGrid(int count)
         {
             m_Count = count;
             Init();
+            Refresh();
         }
 
         private void Start()
@@ -76,9 +82,9 @@ namespace GameFramework.UIKit
 
         private void OnDestroy()
         {
-            if (m_Pool != null)
+            if (m_ItemPool != null)
             {
-                m_Pool.Dispose();
+                m_ItemPool.Dispose();
             }
         }
 
@@ -87,23 +93,140 @@ namespace GameFramework.UIKit
             ScrollRect.onValueChanged.RemoveListener(OnValueChange);
             ScrollRect.onValueChanged.AddListener(OnValueChange);
 
+            m_CellSizeAndSpaceX = GetCellSizeAndSpaceX();
+            m_CellSizeAndSpaceY = GetCellSizeAndSpaceY();
+            
             //计算并设置锚点和长宽
             SetupLayout();
-            //初始化对象池
-            int viewportMaxItemNumber = GetViewportMaxItemNumber();
-            int cachedNumber = m_Count < viewportMaxItemNumber ? m_Count : viewportMaxItemNumber;
 
-            if (m_Pool == null)
-                m_Pool = new GameObjectPool(m_RecycleItemTemplate, cachedNumber, m_GridLayout.transform);
+            m_ViewportMaxItemNumber = GetMaxActiveItemNumber();
+
+            //初始化对象池
+            int cachedNumber = m_Count < m_ViewportMaxItemNumber ? m_Count : m_ViewportMaxItemNumber;
+
+            if (m_ItemPool == null)
+                m_ItemPool = new GameObjectPool(m_RecycleItemTemplate, cachedNumber, m_GridLayout.transform);
             else
-                m_Pool.MaxSize = cachedNumber;
-            m_Pool.WarmUp();
+                m_ItemPool.MaxSize = cachedNumber;
+            m_ItemPool.WarmUp();
 
         }
 
         private void OnValueChange(Vector2 position)
         {
+            Refresh();
+        }
 
+        private void Refresh()
+        {
+            int activeCount = 0;
+            int startRowOrColIndex = 0;
+            int endRowOrColIndex = 0;
+            //计算startRowOrColIndex
+            if (m_ScrollType == ScrollType.Vertical)//垂直
+            {
+                float inverseCellSizeAndSpaceY = 1 / m_CellSizeAndSpaceY;
+                if (m_DirectionV == VerticalDirection.TopToBottom)//从上到下
+                {
+                    startRowOrColIndex = Mathf.FloorToInt(m_SrollRect.content.anchoredPosition.y * inverseCellSizeAndSpaceY);
+                }
+                else//从下到上
+                {
+                    startRowOrColIndex = Mathf.FloorToInt(-m_SrollRect.content.anchoredPosition.y * inverseCellSizeAndSpaceY);
+                }
+            }
+            else//水平方向
+            {
+                float inverseCellSizeAndSpaceX = 1 / m_CellSizeAndSpaceX;
+                if (m_DirectionH == HorizontalDirection.LeftToRight)
+                {
+                    startRowOrColIndex = Mathf.FloorToInt(-m_SrollRect.content.anchoredPosition.x * inverseCellSizeAndSpaceX);
+                }
+                else
+                {
+                    startRowOrColIndex = Mathf.FloorToInt(m_SrollRect.content.anchoredPosition.x * inverseCellSizeAndSpaceX);
+                }
+            }
+            startRowOrColIndex = Mathf.Max(startRowOrColIndex, 0);//为了处理在0行(或列)反向拖拽的情况
+            //计算激活Item
+            int startItemIndex = startRowOrColIndex * m_GridLayout.constraintCount;
+            if (startItemIndex > m_Count - 1)
+            {
+                activeCount = 0;
+            }
+            else
+            {
+                activeCount = m_Count - startItemIndex;//等价于(m_Count-1) - startItemIndex + 1
+                activeCount = Mathf.Min(activeCount, m_ViewportMaxItemNumber);
+            }
+
+            //激活Item
+            for (int i = 0; i < m_ActiveItems.Count; i++)
+            {
+                m_ActiveItems[i].Recycle();
+            }
+            m_ActiveItems.Clear();
+            for (int i = 0; i < activeCount; i++)
+            {
+                m_ActiveItems.Add(m_ItemPool.Get(m_SrollRect.content));
+            }
+            //更新位置
+            for (int i = 0; i < activeCount; i++)
+            {
+                RefreshItemPosition((RectTransform)m_ActiveItems[i].Content.transform, i, startRowOrColIndex, m_ScrollType, m_DirectionV, m_DirectionH);
+            }
+
+        }
+
+        //垂直方向暂时不支持选择水平方向（新行未满时，Item是从哪个方向出现）
+        //水平方向暂时不支持选择垂直方向（新行未满时，Item是从哪个方向出现）
+        private void RefreshItemPosition(RectTransform item,int itemIndex,int startRowOrColIndex, ScrollType scrollType, VerticalDirection verticalDirection,HorizontalDirection horizontalDirection)
+        {
+            item.anchorMin = Vector2.up;
+            item.anchorMax = Vector2.up;
+            item.pivot = Vector2.one * 0.5f;//同一处理,便于计算
+
+            var padding = m_GridLayout.padding;
+            float beginX = 0f;
+            float beginY = 0f;
+
+            float positionX = 0f;
+            float positionY = 0f;
+
+            int indexInRowOrCol = itemIndex % m_GridLayout.constraintCount;
+            int rowOrColIndex = startRowOrColIndex + itemIndex / m_GridLayout.constraintCount;
+            if (scrollType == ScrollType.Vertical)//垂直
+            {
+                beginX = padding.left + m_GridLayout.cellSize.x * 0.5f;//默认是从左边开始
+                positionX = beginX + indexInRowOrCol * m_CellSizeAndSpaceX;
+
+                if (verticalDirection == VerticalDirection.TopToBottom)//从上到下
+                {
+                    beginY = -(padding.top + m_GridLayout.cellSize.y * 0.5f);
+                    positionY = beginY - rowOrColIndex * m_CellSizeAndSpaceY;
+                }
+                else//从下到上
+                {
+                    beginY = -(m_SrollRect.content.rect.height - padding.bottom - m_GridLayout.cellSize.y * 0.5f);
+                    positionY = beginY + rowOrColIndex * m_CellSizeAndSpaceY;
+                }
+            }
+            else
+            {
+                beginY = -(padding.top + m_GridLayout.cellSize.y * 0.5f);//默认是从上面
+                positionY = beginY - indexInRowOrCol * m_CellSizeAndSpaceY;
+                if (horizontalDirection == HorizontalDirection.LeftToRight)//从左到右
+                {
+                    beginX = padding.left + m_GridLayout.cellSize.x * 0.5f;
+                    positionX = beginX +  rowOrColIndex * m_CellSizeAndSpaceX;
+                }
+                else//从右到左
+                {
+                    beginX = m_SrollRect.content.rect.width - padding.right - m_GridLayout.cellSize.x * 0.5f;
+                    positionX = beginX - rowOrColIndex * m_CellSizeAndSpaceX;
+                }
+            }
+            item.anchoredPosition = new Vector2(positionX, positionY);
         }
 
         #region SetupLayout(计算并设置锚点和长宽)
@@ -198,13 +321,13 @@ namespace GameFramework.UIKit
 
             if (m_ScrollType == ScrollType.Vertical)
             {
-                float cellSizeAndSpaceY = GetCellSizeAndSpaceY();
+                float cellSizeAndSpaceY = m_CellSizeAndSpaceY;
                 float rowCount = Mathf.Ceil((float)m_Count / m_GridLayout.constraintCount);
                 return m_GridLayout.padding.vertical + m_GridLayout.spacing.y + 0.001f + rowCount * cellSizeAndSpaceY;
             }
             else
             {
-                float cellSizeAndSpaceX = GetCellSizeAndSpaceX();
+                float cellSizeAndSpaceX = m_CellSizeAndSpaceX;
                 float colCount = Mathf.Ceil((float)m_Count / m_GridLayout.constraintCount);
                 return m_GridLayout.padding.horizontal + m_GridLayout.spacing.x + 0.001f +colCount * cellSizeAndSpaceX;
             }
@@ -222,18 +345,18 @@ namespace GameFramework.UIKit
         #endregion
 
         //计算Viewport区域最大显示的Item数量
-        private int GetViewportMaxItemNumber()
+        private int GetMaxActiveItemNumber()
         {
             if (m_ScrollType == ScrollType.Vertical)
             {
                 float height = ScrollRect.viewport.rect.height;
-                int rowCount = Mathf.CeilToInt(height / GetCellSizeAndSpaceY());
+                int rowCount = Mathf.CeilToInt(height / m_CellSizeAndSpaceY) +1;//加一是滑动过程中，第一行(或者列)没有消失，但是第二列却要显示的问题
                 return m_GridLayout.constraintCount * rowCount;
             }
             else
             {
                 float width = ScrollRect.viewport.rect.width;
-                int colCount = Mathf.CeilToInt(width / GetCellSizeAndSpaceX());
+                int colCount = Mathf.CeilToInt(width / m_CellSizeAndSpaceX) +1;//加一是滑动过程中，第一行(或者列)没有消失，但是第二列却要显示的问题
                 return m_GridLayout.constraintCount * colCount;
             }
         }
