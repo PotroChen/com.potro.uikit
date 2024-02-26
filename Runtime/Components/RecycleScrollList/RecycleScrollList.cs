@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace GameFramework.UIKit
 {
-    public class RecycleScrollList : MonoBehaviour
+    public class RecycleScrollList : ScrollRect
     {
         public enum ScrollType
         {
@@ -27,25 +27,42 @@ namespace GameFramework.UIKit
             RightToLeft
         }
 
-        [SerializeField]
-        private ScrollRect m_SrollRect;
-        public ScrollRect ScrollRect => m_SrollRect;
+        #region GridLayoutProperties
 
         [SerializeField]
-        private GridLayoutGroup m_GridLayout;
-        public GridLayoutGroup GridLayout => m_GridLayout;
+        private RectOffset m_Padding = new RectOffset();
+        public RectOffset Padding => m_Padding;
+
+        [SerializeField]
+        private Vector2 m_CellSize;
+        public Vector2 CellSize => m_CellSize;
+        [SerializeField]
+        private Vector2 m_Spacing;
+        public Vector2 Spacing => m_Spacing;
+
+        private int m_ConstraintCount;
+        #endregion
 
         [SerializeField]
         private GameObject m_RecycleItemTemplate;
         public GameObject RecycleItemTemplate => m_RecycleItemTemplate;
 
 
-        [SerializeField]
-        private ScrollType m_ScrollType = ScrollType.Vertical;
+        //[SerializeField]
+        //private ScrollType ScrollDirection = ScrollType.Vertical;
         /// <summary>
         /// 滚动列表类型
         /// </summary>
-        public ScrollType ScrollDirection => m_ScrollType;
+        public ScrollType ScrollDirection
+        {
+            get
+            {
+                if(horizontal == vertical)
+                    return ScrollType.Vertical;
+
+                return horizontal == true ? ScrollType.Horizontal : ScrollType.Vertical;
+            }
+        }
 
         [SerializeField]
         private VerticalDirection m_DirectionV = VerticalDirection.TopToBottom;
@@ -67,7 +84,7 @@ namespace GameFramework.UIKit
         private float m_CellSizeAndSpaceY;
         private GameObjectPool m_ItemPool;
         private List<IPoolObject<GameObject>> m_ActiveItems = new List<IPoolObject<GameObject>>();
-
+        private RectTransform m_RectTransform;
         public void FillGrid(int count)
         {
             m_Count = count;
@@ -75,13 +92,16 @@ namespace GameFramework.UIKit
             Refresh();
         }
 
-        private void Start()
+        protected override void Start()
         {
-            Init();
+            base.Start();
+            if(!Application.isPlaying)
+                Init();
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             if (m_ItemPool != null)
             {
                 m_ItemPool.Dispose();
@@ -90,8 +110,8 @@ namespace GameFramework.UIKit
 
         private void Init()
         {
-            ScrollRect.onValueChanged.RemoveListener(OnValueChange);
-            ScrollRect.onValueChanged.AddListener(OnValueChange);
+            onValueChanged.RemoveListener(OnValueChange);
+            onValueChanged.AddListener(OnValueChange);
 
             m_CellSizeAndSpaceX = GetCellSizeAndSpaceX();
             m_CellSizeAndSpaceY = GetCellSizeAndSpaceY();
@@ -105,7 +125,7 @@ namespace GameFramework.UIKit
             int cachedNumber = m_Count < m_ViewportMaxItemNumber ? m_Count : m_ViewportMaxItemNumber;
 
             if (m_ItemPool == null)
-                m_ItemPool = new GameObjectPool(m_RecycleItemTemplate, cachedNumber, m_GridLayout.transform);
+                m_ItemPool = new GameObjectPool(m_RecycleItemTemplate, cachedNumber, content);
             else
                 m_ItemPool.MaxSize = cachedNumber;
             m_ItemPool.WarmUp();
@@ -121,18 +141,17 @@ namespace GameFramework.UIKit
         {
             int activeCount = 0;
             int startRowOrColIndex = 0;
-            int endRowOrColIndex = 0;
             //计算startRowOrColIndex
-            if (m_ScrollType == ScrollType.Vertical)//垂直
+            if (ScrollDirection == ScrollType.Vertical)//垂直
             {
                 float inverseCellSizeAndSpaceY = 1 / m_CellSizeAndSpaceY;
                 if (m_DirectionV == VerticalDirection.TopToBottom)//从上到下
                 {
-                    startRowOrColIndex = Mathf.FloorToInt(m_SrollRect.content.anchoredPosition.y * inverseCellSizeAndSpaceY);
+                    startRowOrColIndex = Mathf.FloorToInt(content.anchoredPosition.y * inverseCellSizeAndSpaceY);
                 }
                 else//从下到上
                 {
-                    startRowOrColIndex = Mathf.FloorToInt(-m_SrollRect.content.anchoredPosition.y * inverseCellSizeAndSpaceY);
+                    startRowOrColIndex = Mathf.FloorToInt(-content.anchoredPosition.y * inverseCellSizeAndSpaceY);
                 }
             }
             else//水平方向
@@ -140,16 +159,16 @@ namespace GameFramework.UIKit
                 float inverseCellSizeAndSpaceX = 1 / m_CellSizeAndSpaceX;
                 if (m_DirectionH == HorizontalDirection.LeftToRight)
                 {
-                    startRowOrColIndex = Mathf.FloorToInt(-m_SrollRect.content.anchoredPosition.x * inverseCellSizeAndSpaceX);
+                    startRowOrColIndex = Mathf.FloorToInt(-content.anchoredPosition.x * inverseCellSizeAndSpaceX);
                 }
                 else
                 {
-                    startRowOrColIndex = Mathf.FloorToInt(m_SrollRect.content.anchoredPosition.x * inverseCellSizeAndSpaceX);
+                    startRowOrColIndex = Mathf.FloorToInt(content.anchoredPosition.x * inverseCellSizeAndSpaceX);
                 }
             }
             startRowOrColIndex = Mathf.Max(startRowOrColIndex, 0);//为了处理在0行(或列)反向拖拽的情况
             //计算激活Item
-            int startItemIndex = startRowOrColIndex * m_GridLayout.constraintCount;
+            int startItemIndex = startRowOrColIndex * m_ConstraintCount;
             if (startItemIndex > m_Count - 1)
             {
                 activeCount = 0;
@@ -168,12 +187,12 @@ namespace GameFramework.UIKit
             m_ActiveItems.Clear();
             for (int i = 0; i < activeCount; i++)
             {
-                m_ActiveItems.Add(m_ItemPool.Get(m_SrollRect.content));
+                m_ActiveItems.Add(m_ItemPool.Get(content));
             }
             //更新位置
             for (int i = 0; i < activeCount; i++)
             {
-                RefreshItemPosition((RectTransform)m_ActiveItems[i].Content.transform, i, startRowOrColIndex, m_ScrollType, m_DirectionV, m_DirectionH);
+                RefreshItemPosition((RectTransform)m_ActiveItems[i].Content.transform, i, startRowOrColIndex, ScrollDirection, m_DirectionV, m_DirectionH);
             }
 
         }
@@ -186,43 +205,43 @@ namespace GameFramework.UIKit
             item.anchorMax = Vector2.up;
             item.pivot = Vector2.one * 0.5f;//同一处理,便于计算
 
-            var padding = m_GridLayout.padding;
+            var padding = m_Padding;
             float beginX = 0f;
             float beginY = 0f;
 
             float positionX = 0f;
             float positionY = 0f;
 
-            int indexInRowOrCol = itemIndex % m_GridLayout.constraintCount;
-            int rowOrColIndex = startRowOrColIndex + itemIndex / m_GridLayout.constraintCount;
+            int indexInRowOrCol = itemIndex % m_ConstraintCount;
+            int rowOrColIndex = startRowOrColIndex + itemIndex / m_ConstraintCount;
             if (scrollType == ScrollType.Vertical)//垂直
             {
-                beginX = padding.left + m_GridLayout.cellSize.x * 0.5f;//默认是从左边开始
+                beginX = padding.left + m_CellSize.x * 0.5f;//默认是从左边开始
                 positionX = beginX + indexInRowOrCol * m_CellSizeAndSpaceX;
 
                 if (verticalDirection == VerticalDirection.TopToBottom)//从上到下
                 {
-                    beginY = -(padding.top + m_GridLayout.cellSize.y * 0.5f);
+                    beginY = -(padding.top + m_CellSize.y * 0.5f);
                     positionY = beginY - rowOrColIndex * m_CellSizeAndSpaceY;
                 }
                 else//从下到上
                 {
-                    beginY = -(m_SrollRect.content.rect.height - padding.bottom - m_GridLayout.cellSize.y * 0.5f);
+                    beginY = -(content.rect.height - padding.bottom - m_CellSize.y * 0.5f);
                     positionY = beginY + rowOrColIndex * m_CellSizeAndSpaceY;
                 }
             }
             else
             {
-                beginY = -(padding.top + m_GridLayout.cellSize.y * 0.5f);//默认是从上面
+                beginY = -(padding.top + m_CellSize.y * 0.5f);//默认是从上面
                 positionY = beginY - indexInRowOrCol * m_CellSizeAndSpaceY;
                 if (horizontalDirection == HorizontalDirection.LeftToRight)//从左到右
                 {
-                    beginX = padding.left + m_GridLayout.cellSize.x * 0.5f;
+                    beginX = padding.left + m_CellSize.x * 0.5f;
                     positionX = beginX +  rowOrColIndex * m_CellSizeAndSpaceX;
                 }
                 else//从右到左
                 {
-                    beginX = m_SrollRect.content.rect.width - padding.right - m_GridLayout.cellSize.x * 0.5f;
+                    beginX = content.rect.width - padding.right - m_CellSize.x * 0.5f;
                     positionX = beginX - rowOrColIndex * m_CellSizeAndSpaceX;
                 }
             }
@@ -233,14 +252,11 @@ namespace GameFramework.UIKit
         //计算并设置锚点和长宽
         private void SetupLayout()
         {
-            if (m_SrollRect == null || m_GridLayout == null)
-                return;
-
-            var gridLayoutRectTra = m_GridLayout.GetComponent<RectTransform>();
-            m_SrollRect.vertical = m_ScrollType == ScrollType.Vertical;
-            m_SrollRect.horizontal = m_ScrollType ==  ScrollType.Horizontal;
+            var gridLayoutRectTra = content;
+            vertical = ScrollDirection == ScrollType.Vertical;
+            horizontal = ScrollDirection ==  ScrollType.Horizontal;
             
-            if (m_ScrollType == ScrollType.Vertical)
+            if (ScrollDirection == ScrollType.Vertical)
             {
                 if (m_DirectionV == VerticalDirection.TopToBottom)
                 {
@@ -257,11 +273,8 @@ namespace GameFramework.UIKit
                 gridLayoutRectTra.sizeDelta = new Vector2(0f, 0f);
                 gridLayoutRectTra.ForceUpdateRectTransforms();//强制Update使宽度正确
 
-                m_GridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
-                m_GridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-
                 if (m_AutoCalculateConstraintCount)//计算每行多少列
-                    m_GridLayout.constraintCount = CalculateConstraintCount_Col();
+                    m_ConstraintCount = CalculateConstraintCount_Col();
 
 
                 float length = CalculateScrollViewLength();
@@ -269,9 +282,6 @@ namespace GameFramework.UIKit
             }
             else
             {
-                m_GridLayout.startAxis = GridLayoutGroup.Axis.Vertical;
-                m_GridLayout.constraint = GridLayoutGroup.Constraint.FixedRowCount;
-
                 if (m_DirectionH == HorizontalDirection.LeftToRight)
                 {
                     gridLayoutRectTra.anchorMin = new Vector2(0f, 0f);//Anchor:left without strech
@@ -287,11 +297,8 @@ namespace GameFramework.UIKit
                 gridLayoutRectTra.sizeDelta = new Vector2(0f, 0f);
                 gridLayoutRectTra.ForceUpdateRectTransforms();//强制Update使高度正确
 
-                m_GridLayout.startAxis = GridLayoutGroup.Axis.Vertical;
-                m_GridLayout.constraint = GridLayoutGroup.Constraint.FixedRowCount;
-
                 if (m_AutoCalculateConstraintCount)//计算每列多少行
-                    m_GridLayout.constraintCount = CalculateConstraintCount_Row();
+                    m_ConstraintCount = CalculateConstraintCount_Row();
 
                 float length = CalculateScrollViewLength();
                 gridLayoutRectTra.sizeDelta = new Vector2(length, 0f);
@@ -300,64 +307,64 @@ namespace GameFramework.UIKit
 
         private int CalculateConstraintCount_Col()
         {
-            var gridLayoutRectTra = m_GridLayout.GetComponent<RectTransform>();
+            var gridLayoutRectTra = content;
             float width = gridLayoutRectTra.rect.width;
 
             //copy from sourcecode
-            return Mathf.Max(1, Mathf.FloorToInt((width - m_GridLayout.padding.horizontal + m_GridLayout.spacing.x + 0.001f) / (m_GridLayout.cellSize.x + m_GridLayout.spacing.x)));
+            return Mathf.Max(1, Mathf.FloorToInt((width - m_Padding.horizontal + m_Spacing.x + 0.001f) / (m_CellSize.x + m_Spacing.x)));
         }
 
         private int CalculateConstraintCount_Row() 
         {
-            var gridLayoutRectTra = m_GridLayout.GetComponent<RectTransform>();
+            var gridLayoutRectTra = content;
             float height = gridLayoutRectTra.rect.height;
 
             //copy from sourcecode
-            return Mathf.Max(1, Mathf.FloorToInt((height - m_GridLayout.padding.vertical + m_GridLayout.spacing.y + 0.001f) / (m_GridLayout.cellSize.y + m_GridLayout.spacing.y)));
+            return Mathf.Max(1, Mathf.FloorToInt((height - m_Padding.vertical + m_Spacing.y + 0.001f) / (m_CellSize.y + m_Spacing.y)));
         }
 
         private float CalculateScrollViewLength()
         {
 
-            if (m_ScrollType == ScrollType.Vertical)
+            if (ScrollDirection == ScrollType.Vertical)
             {
                 float cellSizeAndSpaceY = m_CellSizeAndSpaceY;
-                float rowCount = Mathf.Ceil((float)m_Count / m_GridLayout.constraintCount);
-                return m_GridLayout.padding.vertical + m_GridLayout.spacing.y + 0.001f + rowCount * cellSizeAndSpaceY;
+                float rowCount = Mathf.Ceil((float)m_Count / m_ConstraintCount);
+                return m_Padding.vertical + m_Spacing.y + 0.001f + rowCount * cellSizeAndSpaceY;
             }
             else
             {
                 float cellSizeAndSpaceX = m_CellSizeAndSpaceX;
-                float colCount = Mathf.Ceil((float)m_Count / m_GridLayout.constraintCount);
-                return m_GridLayout.padding.horizontal + m_GridLayout.spacing.x + 0.001f +colCount * cellSizeAndSpaceX;
+                float colCount = Mathf.Ceil((float)m_Count / m_ConstraintCount);
+                return m_Padding.horizontal + m_Spacing.x + 0.001f +colCount * cellSizeAndSpaceX;
             }
         }
 
         private float GetCellSizeAndSpaceY()
         {
-            return m_GridLayout.cellSize.y + m_GridLayout.spacing.y;
+            return m_CellSize.y + m_Spacing.y;
         }
 
         private float GetCellSizeAndSpaceX() 
         {
-            return m_GridLayout.cellSize.x + m_GridLayout.spacing.x;
+            return m_CellSize.x + m_Spacing.x;
         }
         #endregion
 
         //计算Viewport区域最大显示的Item数量
         private int GetMaxActiveItemNumber()
         {
-            if (m_ScrollType == ScrollType.Vertical)
+            if (ScrollDirection == ScrollType.Vertical)
             {
-                float height = ScrollRect.viewport.rect.height;
+                float height = viewport.rect.height;
                 int rowCount = Mathf.CeilToInt(height / m_CellSizeAndSpaceY) +1;//加一是滑动过程中，第一行(或者列)没有消失，但是第二列却要显示的问题
-                return m_GridLayout.constraintCount * rowCount;
+                return m_ConstraintCount * rowCount;
             }
             else
             {
-                float width = ScrollRect.viewport.rect.width;
+                float width = viewport.rect.width;
                 int colCount = Mathf.CeilToInt(width / m_CellSizeAndSpaceX) +1;//加一是滑动过程中，第一行(或者列)没有消失，但是第二列却要显示的问题
-                return m_GridLayout.constraintCount * colCount;
+                return m_ConstraintCount * colCount;
             }
         }
 
@@ -370,12 +377,7 @@ namespace GameFramework.UIKit
         [ContextMenu("预览")]
         private void Preview()
         {
-            SetupLayout();
-
-            for (int i = 0; i < Count; i++)
-            {
-                var item = GameObject.Instantiate(m_RecycleItemTemplate, m_GridLayout.transform);
-            }
+            FillGrid(m_Count);
         }
 #endif
     }

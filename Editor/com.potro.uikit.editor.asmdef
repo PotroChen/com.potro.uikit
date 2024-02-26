@@ -1,0 +1,18 @@
+{
+    "name": "com.potro.uikit.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:7d8960280d8708e4984fe3649653eb72"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
