@@ -50,14 +50,17 @@ namespace GameFramework.UIKit
                 m_Root = GameObject.Instantiate(assetObject);
                 UIManager.AttachToLayer(m_Root, ConfigData.UILayer);
                 OnCreated();
+                if(m_Root.activeSelf)
+                    OnShow();
             }
             resLoader.LoadAssetAsync<GameObject>(ConfigData.PrefabPath, OnLoadCompleted);
         }
 
         internal virtual void Purge()
         {
+            if (m_Root.activeSelf)
+                OnHide();
             OnPurge();
-
             Object.Destroy(m_Root);
             m_Root = null;
 
