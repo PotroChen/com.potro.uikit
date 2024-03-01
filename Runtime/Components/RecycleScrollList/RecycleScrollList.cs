@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using GluonGui;
@@ -7,6 +8,9 @@ using UnityEngine.UI;
 
 namespace GameFramework.UIKit
 {
+    /// <summary>
+    /// 无限循环滚动列表
+    /// </summary>
     public class RecycleScrollList : ScrollRect
     {
         public enum ScrollType
@@ -79,14 +83,18 @@ namespace GameFramework.UIKit
         private int m_Count;
         public int Count => m_Count;
 
+        public event Action<int, GameObject> OnItemRefresh;
+
         private int m_ViewportMaxItemNumber;
         private float m_CellSizeAndSpaceX;
         private float m_CellSizeAndSpaceY;
         private GameObjectPool m_ItemPool;
         private List<IPoolObject<GameObject>> m_ActiveItems = new List<IPoolObject<GameObject>>();
         private RectTransform m_RectTransform;
+        private int lastStartRowOrColIndex = -1;
         public void FillGrid(int count)
         {
+            lastStartRowOrColIndex = -1;
             m_Count = count;
             Init();
             Refresh();
@@ -179,21 +187,37 @@ namespace GameFramework.UIKit
                 activeCount = Mathf.Min(activeCount, m_ViewportMaxItemNumber);
             }
 
-            //激活Item
-            for (int i = 0; i < m_ActiveItems.Count; i++)
+            if (lastStartRowOrColIndex != startRowOrColIndex)//激活数量和显示的Item没变化,就没必要重新激活
             {
-                m_ActiveItems[i].Recycle();
+                //激活Item
+                for (int i = 0; i < m_ActiveItems.Count; i++)
+                {
+                    m_ActiveItems[i].Recycle();
+                }
+                m_ActiveItems.Clear();
+                for (int i = 0; i < activeCount; i++)
+                {
+                    m_ActiveItems.Add(m_ItemPool.Get(content));
+                }
             }
-            m_ActiveItems.Clear();
-            for (int i = 0; i < activeCount; i++)
-            {
-                m_ActiveItems.Add(m_ItemPool.Get(content));
-            }
+
+
             //更新位置
             for (int i = 0; i < activeCount; i++)
             {
                 RefreshItemPosition((RectTransform)m_ActiveItems[i].Content.transform, i, startRowOrColIndex, ScrollDirection, m_DirectionV, m_DirectionH);
             }
+
+            if (lastStartRowOrColIndex != startRowOrColIndex)// 激活数量和显示的Item没变化,就没必要重新调用刷新回调
+            {
+                //触发回调
+                for (int i = 0; i < activeCount; i++)
+                {
+                    int itemIndex = startItemIndex + i;
+                    OnItemRefresh?.Invoke(itemIndex, m_ActiveItems[i].Content);
+                }
+            }
+            lastStartRowOrColIndex = startRowOrColIndex;
 
         }
 
