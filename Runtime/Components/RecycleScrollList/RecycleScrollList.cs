@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using GluonGui;
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityEngine.UI;
 
 namespace GameFramework.UIKit
@@ -11,6 +8,7 @@ namespace GameFramework.UIKit
     /// <summary>
     /// 无限循环滚动列表
     /// </summary>
+    [AddComponentMenu("UI框架/无限循环滚动列表(RecycleScrollList)")]
     public class RecycleScrollList : ScrollRect
     {
         public enum ScrollType
