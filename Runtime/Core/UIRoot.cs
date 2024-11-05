@@ -9,11 +9,15 @@ namespace GameFramework.UIKit
     {
         Normal,
         Message,
-        Top
+        Top,
+        World
     }
 
     public class UIRoot : MonoBehaviour
     {
+        [SerializeField]
+        private Transform worldLayer;
+
         [SerializeField]
         private Transform normalLayer;
 
@@ -22,6 +26,11 @@ namespace GameFramework.UIKit
 
         [SerializeField]
         private Transform topLayer;
+
+        public Transform WorldLayer => worldLayer;
+        public Transform NormalLayer => normalLayer;
+        public Transform MessageLayer => messageLayer;
+        public Transform TopLayer => topLayer;
 
         internal void AttachToLayer(GameObject uiGo, UILayer uILayer)
         {
@@ -36,6 +45,9 @@ namespace GameFramework.UIKit
                     break;
                 case UILayer.Top:
                     layerTra = topLayer;
+                    break;
+                case UILayer.World:
+                    layerTra = worldLayer;
                     break;
                 default:
                     throw new Exception("");

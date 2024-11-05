@@ -8,6 +8,7 @@ namespace GameFramework.UIKit
 {
     public class UIManager : MonoBehaviour
     {
+        public static UIRoot UIRoot => instance.m_uiRoot;
         /// <summary>
         /// 当前打开的主面板（一级界面）
         /// </summary>
@@ -43,7 +44,6 @@ namespace GameFramework.UIKit
         private UIPanel m_CurrentPanel;
         //界面切换堆栈
         private UIPanelHistory m_PanelHistory = new UIPanelHistory();
-        //UIRoot
         [SerializeField]
         private UIRoot m_uiRoot;
 
