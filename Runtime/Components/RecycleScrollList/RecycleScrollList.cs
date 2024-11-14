@@ -101,7 +101,7 @@ namespace GameFramework.UIKit
         protected override void Start()
         {
             base.Start();
-            if(!Application.isPlaying)
+            if(Application.isPlaying)
                 Init();
         }
 
