@@ -4,7 +4,8 @@
     "references": [
         "Unity.Addressables",
         "Unity.ResourceManager",
-        "com.potro.core.runtime"
+        "com.potro.core.runtime",
+        "com.potro.addressableextensions"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

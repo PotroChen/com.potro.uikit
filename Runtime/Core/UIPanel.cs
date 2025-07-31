@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -43,13 +43,13 @@ namespace GameFramework.UIKit
             {
                 m_InitData = initData;
             }
-            OnLoad(m_InitData);
+            OnInit(m_InitData);
 
             void OnLoadCompleted(GameObject assetObject)
             {
                 m_Root = GameObject.Instantiate(assetObject);
                 UIManager.AttachToLayer(m_Root, ConfigData.UILayer);
-                OnCreated();
+                OnLoaded();
                 if(m_Root.activeSelf)
                     OnShow();
             }
@@ -89,9 +89,9 @@ namespace GameFramework.UIKit
             OnHide();
         }
 
-        protected abstract void OnLoad(IData data);
+        protected abstract void OnInit(IData data);
 
-        protected abstract void OnCreated();
+        protected abstract void OnLoaded();
 
         protected abstract void OnShow();
 
