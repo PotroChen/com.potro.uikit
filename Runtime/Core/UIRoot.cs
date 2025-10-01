@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,6 +16,9 @@ namespace GameFramework.UIKit
     public class UIRoot : MonoBehaviour
     {
         [SerializeField]
+        private Camera uiCamera;
+
+        [SerializeField]
         private Transform worldLayer;
 
         [SerializeField]
@@ -27,6 +30,7 @@ namespace GameFramework.UIKit
         [SerializeField]
         private Transform topLayer;
 
+        public Camera UICamera => uiCamera;
         public Transform WorldLayer => worldLayer;
         public Transform NormalLayer => normalLayer;
         public Transform MessageLayer => messageLayer;

@@ -10,7 +10,7 @@ namespace GameFramework.UIKit
     {
         public static UIRoot UIRoot => instance.m_uiRoot;
         /// <summary>
-        /// µ±Ç°´ò¿ªµÄÖ÷Ãæ°å£¨Ò»¼¶½çÃæ£©
+        /// å½“å‰æ‰“å¼€çš„ä¸»é¢æ¿ï¼ˆä¸€çº§ç•Œé¢ï¼‰
         /// </summary>
         public static UIPanel CurrentPanel 
         {
@@ -21,7 +21,7 @@ namespace GameFramework.UIKit
         private static UIManager instance = null;
 
         /// <summary>
-        /// ÇĞ»»ÏÂÒ»¸ö½çÃæ
+        /// åˆ‡æ¢ä¸‹ä¸€ä¸ªç•Œé¢
         /// </summary>
         public static void Goto<TPanel>(IData data = null) where TPanel : UIPanel, new()
         {
@@ -29,7 +29,7 @@ namespace GameFramework.UIKit
         }
 
         /// <summary>
-        /// ·µ»ØÉÏÒ»½çÃæ
+        /// è¿”å›ä¸Šä¸€ç•Œé¢
         /// </summary>
         public static void Goback(IData data = null)
         {
@@ -42,7 +42,7 @@ namespace GameFramework.UIKit
         }
 
         private UIPanel m_CurrentPanel;
-        //½çÃæÇĞ»»¶ÑÕ»
+        //ç•Œé¢åˆ‡æ¢å †æ ˆ
         private UIPanelHistory m_PanelHistory = new UIPanelHistory();
         [SerializeField]
         private UIRoot m_uiRoot;
@@ -109,7 +109,7 @@ namespace GameFramework.UIKit
         }
 
         /// <summary>
-        /// ·µ»ØÉÏÒ»½çÃæ
+        /// è¿”å›ä¸Šä¸€ç•Œé¢
         /// </summary>
         private void Goback_internal(IData data = null)
         {
