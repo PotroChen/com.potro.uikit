@@ -13,9 +13,14 @@ namespace GameFramework.UIKit
         /// </summary>
         public static string UIPanelGeneratedCodeDirectory { get { return instance.m_UIPanelGeneratedCodeDirectory; } }
 
+        /// <summary>
+        /// 生成代码默认命名空间
+        /// </summary>
+        public static string DefaultNameSpace { get { return instance.m_DefaultNameSpace; } }
         [SerializeField]
         private string m_UIPanelGeneratedCodeDirectory = "";
-
+        [SerializeField]
+        private string m_DefaultNameSpace = "Game.UI";
         void OnDisable()
         {
             Save();

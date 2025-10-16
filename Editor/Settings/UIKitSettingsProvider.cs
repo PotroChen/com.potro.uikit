@@ -18,6 +18,7 @@ namespace GameFramework.UIKit
 
         SerializedObject m_SerializedObject;
         SerializedProperty m_UIPanelGeneratedCodeDirectory;
+        SerializedProperty m_DefaultNameSpace;
         public UIKitSettingsProvider(string path, SettingsScope scopes, IEnumerable<string> keywords = null)
                 : base(path, scopes, keywords) { }
 
@@ -27,6 +28,7 @@ namespace GameFramework.UIKit
 
             m_SerializedObject = UIKitEditorSettings.instance.GetSerializedObject();
             m_UIPanelGeneratedCodeDirectory = m_SerializedObject.FindProperty("m_UIPanelGeneratedCodeDirectory");
+            m_DefaultNameSpace = m_SerializedObject.FindProperty("m_DefaultNameSpace");
         }
 
         /* ScriptableSingleton故意设置成DontSaveAndHide
@@ -44,6 +46,7 @@ namespace GameFramework.UIKit
 
                 EditorGUILayout.LabelField("Editor Settings", EditorStyles.boldLabel);
                 m_UIPanelGeneratedCodeDirectory.stringValue = RelativeFolderPathFieldLayout("UIPanel相关代码生成文件夹", m_UIPanelGeneratedCodeDirectory.stringValue);
+                m_DefaultNameSpace.stringValue = EditorGUILayout.TextField("生成代码默认命名空间", m_DefaultNameSpace.stringValue);
 
                 if (EditorGUI.EndChangeCheck())
                 {

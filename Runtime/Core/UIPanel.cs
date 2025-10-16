@@ -4,7 +4,7 @@ using UnityEngine.AddressableAssets;
 
 namespace GameFramework.UIKit
 {
-    public abstract class UIPanel
+    public class UIPanel
     {
         public string Name { get; private set; }
 
@@ -24,7 +24,7 @@ namespace GameFramework.UIKit
         }
 
         //界面配置数据
-        protected abstract PanelConfig ConfigData{get;}
+        protected virtual PanelConfig ConfigData { get; } = default;
 
         //界面初始化数据
         protected IData m_InitData = null;
@@ -89,15 +89,15 @@ namespace GameFramework.UIKit
             OnHide();
         }
 
-        protected abstract void OnInit(IData data);
+        protected virtual void OnInit(IData data) { }
 
-        protected abstract void OnLoaded();
+        protected virtual void OnLoaded() { }
 
-        protected abstract void OnShow();
+        protected virtual void OnShow() { }
 
-        protected abstract void OnHide();
+        protected virtual void OnHide() { }
 
-        protected abstract void OnPurge();
+        protected virtual void OnPurge() { }
 
 
         public static string GetName(UIPanel panel)
