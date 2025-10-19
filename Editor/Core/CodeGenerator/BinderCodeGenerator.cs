@@ -1,19 +1,20 @@
 using Microsoft.CSharp;
+using System;
 using System.CodeDom;
 using System.CodeDom.Compiler;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using static GameFramework.UIKit.UIParameterBinder;
 
 namespace GameFramework.UIKit
 {
     public static class BinderCodeGenerator
     {
-        public static void GenerateBinderCode_Panel(string className)
+        public static void GenerateBinderCode_Panel(string className, ParameterEntry[] entries)
         {
             string codeGenDirectory = UIKitEditorSettings.UIPanelGeneratedCodeDirectory?.Trim();
             if (string.IsNullOrEmpty(codeGenDirectory))
@@ -24,11 +25,11 @@ namespace GameFramework.UIKit
 
             string directory = $"{Application.dataPath}/{codeGenDirectory}/Panels";
             string shortFileName = $"{className}.gen.cs";
-            GenerateBinderCode(className, directory, shortFileName);
+            GenerateBinderCode(className, directory, shortFileName, entries);
             AssetDatabase.Refresh();
         }
 
-        private static void GenerateBinderCode(string className,string directory, string shortFileName)
+        private static void GenerateBinderCode(string className,string directory, string shortFileName, ParameterEntry[] entries)
         {
             string filePath = $"{directory}/{shortFileName}";
             CodeNamespace ns = new CodeNamespace(UIKitEditorSettings.DefaultNameSpace);
@@ -39,17 +40,74 @@ namespace GameFramework.UIKit
             uiClass.BaseTypes.Add(new CodeTypeReference("UIPanel"));
 
             ns.Types.Add(uiClass);
-            ns.Imports.Add(new CodeNamespaceImport("UnityEngine"));
-            ns.Imports.Add(new CodeNamespaceImport("GameFramework.UIKit"));
+            HashSet<string> usingNamespaces = new HashSet<string>();
+            usingNamespaces.Add("UnityEngine");
+            usingNamespaces.Add("GameFramework.UIKit");
 
             CodeCompileUnit compileUnit = new CodeCompileUnit();
             //设置所属Namespace
             compileUnit.Namespaces.Add(ns);
 
+            if (entries != null && entries.Length > 0)
+            {
+                foreach (var entry in entries)
+                {
+                    GenerateVariableCode(entry, usingNamespaces, out var field, out var property);
+                    uiClass.Members.Add(field);
+                    uiClass.Members.Add(property);
+                }
+            }
+
+            foreach (var usingNamespace in usingNamespaces)
+            {
+                ns.Imports.Add(new CodeNamespaceImport(usingNamespace));
+            }
+
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
             GenerateCSharpCode(compileUnit, filePath);
+        }
+
+        private static void GenerateVariableCode(ParameterEntry entry, HashSet<string> usingNamespaces,
+            out CodeMemberField field,out CodeMemberProperty property)
+        {
+            string fieldName = entry.Name?.Trim();
+            object fieldValue = null;
+            if (string.IsNullOrEmpty(fieldName))
+            {
+                throw new Exception($"[UIKit][Code Gode Generorator]Exist parameter with empty name");
+            }
+
+            if (entry.ParameterType == ParameterType.GameObject)
+            {
+                if (entry.Go == null)
+                    throw new Exception($"[UIKit][Code Gode Generorator]Parameter:{entry.Name},Value is Null");
+                fieldValue = entry.Go;
+            }
+            else if (entry.ParameterType == ParameterType.Component)
+            {
+                if (entry.Component == null)
+                    throw new Exception($"[UIKit][Code Gode Generorator]Parameter:{entry.Name},Value is Null");
+                fieldValue = entry.Component;
+            }
+            else
+                throw new Exception($"[UIKit][Code Gode Generorator]ParameterType {entry.ParameterType.ToString()} not supported");
+
+            Type fieldType = fieldValue.GetType();
+            string usingNamespace = fieldType.Namespace;
+
+            usingNamespaces.Add(usingNamespace);
+            //Field
+            field = new CodeMemberField(fieldType.Name, $"m_{fieldName}");
+            field.Attributes = MemberAttributes.Private;
+            //Property
+            property = new CodeMemberProperty();
+            property.Type = new CodeTypeReference(fieldType.Name);
+            property.Name = fieldName;
+            property.Attributes  = MemberAttributes.Family| MemberAttributes.Final;
+            property.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), $"m_{fieldName}")));
+
         }
 
         private static void GenerateCSharpCode(CodeCompileUnit compileunit, string filePath)

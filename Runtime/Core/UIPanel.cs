@@ -49,6 +49,7 @@ namespace GameFramework.UIKit
             {
                 m_Root = GameObject.Instantiate(assetObject);
                 UIManager.AttachToLayer(m_Root, ConfigData.UILayer);
+                m_Root.GetComponent<UIParameterBinder>()?.Init();
                 OnLoaded();
                 if(m_Root.activeSelf)
                     OnShow();

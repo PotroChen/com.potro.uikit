@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GameFramework.UIKit
@@ -12,7 +13,7 @@ namespace GameFramework.UIKit
         }
 
         [Serializable]
-        public struct ParameterEntry
+        public class ParameterEntry
         {
             public string Name;
             public ParameterType ParameterType;
@@ -21,5 +22,40 @@ namespace GameFramework.UIKit
         }
 
         public ParameterEntry[] entries;
+
+        private bool initted = false;
+        private Dictionary<string, ParameterEntry> name2ParameterEntry = new ();
+        private void Awake()
+        {
+            Init();
+        }
+
+        public void Init()
+        {
+            if (initted)
+                return;
+            name2ParameterEntry.Clear();
+            foreach (var entry in entries)
+            {
+                if (!string.IsNullOrEmpty(entry.Name.Trim()))
+                {
+                    name2ParameterEntry[entry.Name.Trim()] = entry;
+                }
+            }
+
+            initted = true;
+        }
+
+        public GameObject GetGo(string name)
+        {
+            name2ParameterEntry.TryGetValue(name, out var entry);
+            return entry.Go;
+        }
+
+        public Component GetCom(string name)
+        {
+            name2ParameterEntry.TryGetValue(name, out var entry);
+            return entry.Component;
+        }
     }
 }
