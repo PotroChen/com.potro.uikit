@@ -46,13 +46,13 @@ namespace GameFramework.UIKit
             initted = true;
         }
 
-        public GameObject GetGo(string name)
+        public GameObject GetGameObject(string name)
         {
             name2ParameterEntry.TryGetValue(name, out var entry);
             return entry.Go;
         }
 
-        public Component GetCom(string name)
+        public new Component GetComponent(string name)
         {
             name2ParameterEntry.TryGetValue(name, out var entry);
             return entry.Component;

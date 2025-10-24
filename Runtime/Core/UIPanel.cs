@@ -91,7 +91,6 @@ namespace GameFramework.UIKit
         }
 
         protected virtual void OnInit(IData data) { }
-
         protected virtual void OnLoaded() { }
 
         protected virtual void OnShow() { }

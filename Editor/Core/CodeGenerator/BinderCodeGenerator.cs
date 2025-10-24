@@ -47,7 +47,7 @@ namespace GameFramework.UIKit
             CodeCompileUnit compileUnit = new CodeCompileUnit();
             //设置所属Namespace
             compileUnit.Namespaces.Add(ns);
-
+            List<CodeMemberField> entryFields = new List<CodeMemberField>();
             if (entries != null && entries.Length > 0)
             {
                 foreach (var entry in entries)
@@ -55,9 +55,35 @@ namespace GameFramework.UIKit
                     GenerateVariableCode(entry, usingNamespaces, out var field, out var property);
                     uiClass.Members.Add(field);
                     uiClass.Members.Add(property);
+
+                    entryFields.Add(field);
                 }
             }
 
+            //设置overrided OnLoad方法
+            string intendedString = "            ";
+            CodeMemberMethod onloadedMethod = new CodeMemberMethod();
+            onloadedMethod.Name = "OnLoaded";
+            onloadedMethod.Attributes = MemberAttributes.Family |//| MemberAttributes.Final//protected
+                                        MemberAttributes.Override;//override
+            string onLoadedContent = "";
+            onLoadedContent += $"{intendedString}base.OnLoaded();";
+            onLoadedContent += $"\n{intendedString}var binder = m_Root.GetComponent<UIParameterBinder>();";
+            foreach (var entryField in entryFields)
+            {
+                string binderKey = entryField.Name.Replace("m_", "");
+                string typeName = entryField.Type.BaseType;
+                if (typeName == "GameObject")
+                {
+                    onLoadedContent += $"\n{intendedString}{entryField.Name} = binder.GetGameObject(\"{binderKey}\");";
+                }
+                else
+                {
+                    onLoadedContent += $"\n{intendedString}{entryField.Name} = binder.GetComponent(\"{binderKey}\") as {typeName};";
+                }
+            }
+            onloadedMethod.Statements.Add(new CodeSnippetStatement(onLoadedContent));
+            uiClass.Members.Add(onloadedMethod);
             foreach (var usingNamespace in usingNamespaces)
             {
                 ns.Imports.Add(new CodeNamespaceImport(usingNamespace));
