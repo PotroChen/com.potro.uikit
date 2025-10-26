@@ -71,7 +71,7 @@ namespace GameFramework.UIKit
             onLoadedContent += $"\n{intendedString}var binder = m_Root.GetComponent<UIParameterBinder>();";
             foreach (var entryField in entryFields)
             {
-                string binderKey = entryField.Name.Replace("m_", "");
+                string binderKey = LowercaseFirstChar(entryField.Name);
                 string typeName = entryField.Type.BaseType;
                 if (typeName == "GameObject")
                 {
@@ -125,14 +125,15 @@ namespace GameFramework.UIKit
 
             usingNamespaces.Add(usingNamespace);
             //Field
-            field = new CodeMemberField(fieldType.Name, $"m_{fieldName}");
+            field = new CodeMemberField(fieldType.Name,LowercaseFirstChar(fieldName));
             field.Attributes = MemberAttributes.Private;
             //Property
             property = new CodeMemberProperty();
-            property.Type = new CodeTypeReference(fieldType.Name);
+            property.Type = new CodeTypeReference(UppercaseFirstChar(fieldType.Name));
             property.Name = fieldName;
             property.Attributes  = MemberAttributes.Family| MemberAttributes.Final;
-            property.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), $"m_{fieldName}")));
+            property.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(
+                                                                    new CodeThisReferenceExpression(), LowercaseFirstChar(fieldName))));
 
         }
 
@@ -203,7 +204,39 @@ namespace GameFramework.UIKit
             return content;
         }
 
+        internal static string LowercaseFirstChar(string input)
+        {
+            // 处理空字符串或null
+            if (string.IsNullOrEmpty(input))
+                return input;
 
+            // 检查第一个字符是否已小写
+            if (char.IsLower(input[0]))
+                return input;
+
+            // 转换第一个字符为小写（使用不变区域性）
+            char firstChar = char.ToLowerInvariant(input[0]);
+
+            // 拼接新字符串（避免修改原字符串）
+            return firstChar + input.Substring(1);
+        }
+
+        internal static string UppercaseFirstChar(string input)
+        {
+            // 处理空字符串或null
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            // 检查第一个字符是否已小写
+            if (char.IsUpper(input[0]))
+                return input;
+
+            // 转换第一个字符为小写（使用不变区域性）
+            char firstChar = char.ToUpperInvariant(input[0]);
+
+            // 拼接新字符串（避免修改原字符串）
+            return firstChar + input.Substring(1);
+        }
         #endregion
     }
 }
