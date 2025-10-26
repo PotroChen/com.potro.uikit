@@ -24,7 +24,13 @@ namespace GameFramework.UIKit
         }
 
         //界面配置数据
-        protected virtual PanelConfig ConfigData { get; } = default;
+        protected virtual PanelConfig ConfigData
+        {
+            get
+            {
+                throw new System.NotImplementedException();
+            }
+        }
 
         //界面初始化数据
         protected IData m_InitData = null;

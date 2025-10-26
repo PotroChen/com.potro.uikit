@@ -69,17 +69,25 @@ namespace GameFramework.UIKit
             string onLoadedContent = "";
             onLoadedContent += $"{intendedString}base.OnLoaded();";
             onLoadedContent += $"\n{intendedString}var binder = m_Root.GetComponent<UIParameterBinder>();";
-            foreach (var entryField in entryFields)
+            if (entries != null && entries.Length > 0)
             {
-                string binderKey = LowercaseFirstChar(entryField.Name);
-                string typeName = entryField.Type.BaseType;
-                if (typeName == "GameObject")
+                foreach (var entry in entries)
                 {
-                    onLoadedContent += $"\n{intendedString}{entryField.Name} = binder.GetGameObject(\"{binderKey}\");";
-                }
-                else
-                {
-                    onLoadedContent += $"\n{intendedString}{entryField.Name} = binder.GetComponent(\"{binderKey}\") as {typeName};";
+                    string binderKey = entry.Name;
+                    string fieldName = GetFieldName(entry);
+                    if (entry.ParameterType == ParameterType.GameObject)
+                    {
+                        if (entry.Go == null)
+                            continue;
+                        onLoadedContent += $"\n{intendedString}{fieldName} = binder.GetGameObject(\"{binderKey}\");";
+                    }
+                    else
+                    {
+                        if (entry.Component == null)
+                            continue;
+                        string typeName = entry.Component.GetType().Name;
+                        onLoadedContent += $"\n{intendedString}{fieldName} = binder.GetComponent(\"{binderKey}\") as {typeName};";
+                    }
                 }
             }
             onloadedMethod.Statements.Add(new CodeSnippetStatement(onLoadedContent));
@@ -125,15 +133,15 @@ namespace GameFramework.UIKit
 
             usingNamespaces.Add(usingNamespace);
             //Field
-            field = new CodeMemberField(fieldType.Name,LowercaseFirstChar(fieldName));
+            field = new CodeMemberField(fieldType.Name, GetFieldName(entry));
             field.Attributes = MemberAttributes.Private;
             //Property
             property = new CodeMemberProperty();
-            property.Type = new CodeTypeReference(UppercaseFirstChar(fieldType.Name));
-            property.Name = fieldName;
+            property.Type = new CodeTypeReference(fieldType.Name);
+            property.Name = GetPropertyName(entry);
             property.Attributes  = MemberAttributes.Family| MemberAttributes.Final;
             property.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(
-                                                                    new CodeThisReferenceExpression(), LowercaseFirstChar(fieldName))));
+                                                                    new CodeThisReferenceExpression(), GetFieldName(entry))));
 
         }
 
@@ -160,6 +168,18 @@ namespace GameFramework.UIKit
             File.WriteAllText(filePath, content, encoding);
         }
 
+        #region ParameterEntryUtils
+        private static string GetFieldName(ParameterEntry entry)
+        {
+            return LowercaseFirstChar(entry.Name.Trim());
+        }
+
+        private static string GetPropertyName(ParameterEntry entry)
+        {
+            return UppercaseFirstChar(entry.Name.Trim());
+        }
+
+        #endregion 
         #region Comdom Utils
         /// <summary>
         /// 注释
