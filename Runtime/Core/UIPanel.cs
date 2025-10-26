@@ -56,6 +56,7 @@ namespace GameFramework.UIKit
                 m_Root = GameObject.Instantiate(assetObject);
                 UIManager.AttachToLayer(m_Root, ConfigData.UILayer);
                 m_Root.GetComponent<UIParameterBinder>()?.Init();
+                BindParameter();
                 OnLoaded();
                 if(m_Root.activeSelf)
                     OnShow();
@@ -97,7 +98,16 @@ namespace GameFramework.UIKit
         }
 
         protected virtual void OnInit(IData data) { }
-        protected virtual void OnLoaded() { }
+
+        /// <summary>
+        /// 应该被自动生成的代码overrided,开发者不应该手动overrided
+        /// </summary>
+        protected virtual void BindParameter() { }
+
+        protected virtual void OnLoaded() 
+        {
+
+        }
 
         protected virtual void OnShow() { }
 

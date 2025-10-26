@@ -63,11 +63,11 @@ namespace GameFramework.UIKit
             //设置overrided OnLoad方法
             string intendedString = "            ";
             CodeMemberMethod onloadedMethod = new CodeMemberMethod();
-            onloadedMethod.Name = "OnLoaded";
+            onloadedMethod.Name = "BindParameter";
             onloadedMethod.Attributes = MemberAttributes.Family |//| MemberAttributes.Final//protected
                                         MemberAttributes.Override;//override
             string onLoadedContent = "";
-            onLoadedContent += $"{intendedString}base.OnLoaded();";
+            onLoadedContent += $"{intendedString}base.BindParameter();";
             onLoadedContent += $"\n{intendedString}var binder = m_Root.GetComponent<UIParameterBinder>();";
             if (entries != null && entries.Length > 0)
             {
