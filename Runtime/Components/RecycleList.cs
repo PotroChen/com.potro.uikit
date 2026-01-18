@@ -12,6 +12,12 @@ namespace GameFramework.UIKit
         private GameObjectPool goPool;
         private List<IPoolObject<GameObject>> poolObjects = new List<IPoolObject<GameObject>>();
 
+        public void Awake()
+        {
+            if (Template != null)
+                Template.SetActive(false);
+        }
+
         public void FillList(int count,Action<int,GameObject> onItemCallback)
         {
             if (goPool == null)
