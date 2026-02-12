@@ -9,12 +9,14 @@ namespace GameFramework.UIKit
     [CustomEditor(typeof(ExToggle))]
     public class ExToggleEditor : ToggleEditor
     {
-        private SerializedProperty onClick;
+        private SerializedProperty click;
+        private SerializedProperty pointerEnter;
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            onClick = serializedObject.FindProperty(nameof(ExToggle.onClick));
+            click = serializedObject.FindProperty(nameof(ExToggle.m_Click));
+            pointerEnter = serializedObject.FindProperty(nameof(ExToggle.m_PointerEnter));
         }
 
         public override void OnInspectorGUI()
@@ -23,7 +25,8 @@ namespace GameFramework.UIKit
             EditorGUILayout.Space();
 
             serializedObject.Update();
-            EditorGUILayout.PropertyField(onClick, new GUIContent(nameof(ExToggle.onClick)));
+            EditorGUILayout.PropertyField(click, new GUIContent(nameof(ExToggle.m_Click)));
+            EditorGUILayout.PropertyField(pointerEnter, new GUIContent(nameof(ExToggle.m_PointerEnter)));
             serializedObject.ApplyModifiedProperties();
         }
     }
