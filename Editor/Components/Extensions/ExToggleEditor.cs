@@ -25,8 +25,8 @@ namespace GameFramework.UIKit
             EditorGUILayout.Space();
 
             serializedObject.Update();
-            EditorGUILayout.PropertyField(click, new GUIContent(nameof(ExToggle.m_Click)));
-            EditorGUILayout.PropertyField(pointerEnter, new GUIContent(nameof(ExToggle.m_PointerEnter)));
+            EditorGUILayout.PropertyField(click, new GUIContent(nameof(ExToggle.m_Click).Replace("m_","")));
+            EditorGUILayout.PropertyField(pointerEnter, new GUIContent(nameof(ExToggle.m_PointerEnter).Replace("m_", "")));
             serializedObject.ApplyModifiedProperties();
         }
     }

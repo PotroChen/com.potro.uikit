@@ -14,6 +14,7 @@ namespace GameFramework.UIKit
 
         public UnityEvent Click => m_Click;
 
+        [SerializeField]
         internal UnityEvent m_PointerEnter;
         public UnityEvent PointerEnter => m_PointerEnter;
 
