@@ -28,7 +28,7 @@ namespace GameFramework.UIKit
         {
             get
             {
-                throw new System.NotImplementedException();
+                throw new System.NotImplementedException($"{this.GetType()}.ConfigData not implemented");
             }
         }
 
