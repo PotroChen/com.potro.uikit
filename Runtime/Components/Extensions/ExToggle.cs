@@ -21,8 +21,8 @@ namespace GameFramework.UIKit
         public override void OnPointerClick(PointerEventData eventData)
         {
             base.OnPointerClick(eventData);
-            m_Click?.Invoke();
-
+            if(interactable)
+                m_Click?.Invoke();
         }
 
         public override void OnPointerEnter(PointerEventData eventData)

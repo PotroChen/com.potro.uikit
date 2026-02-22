@@ -8,6 +8,8 @@ namespace GameFramework.UIKit
     {
         public string Name { get; private set; }
 
+        public bool IsPermanent => ConfigData.IsPermanent;
+
         protected ResLoader resLoader = new ResLoader();
 
         public struct PanelConfig
@@ -21,6 +23,11 @@ namespace GameFramework.UIKit
             /// UI层级
             /// </summary>
             public UILayer UILayer;
+
+            /// <summary>
+            /// 是否是持久的（不会因为Goto而被Purge,但是会因为GoBack而被Purge）
+            /// </summary>
+            public bool IsPermanent;
         }
 
         //界面配置数据

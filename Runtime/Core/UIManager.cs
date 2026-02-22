@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 
 namespace GameFramework.UIKit
@@ -97,7 +94,8 @@ namespace GameFramework.UIKit
             UIPanel previousPanel = CurrentPanel;
             if (previousPanel != null)
             {
-                previousPanel.Purge();
+                if(!previousPanel.IsPermanent)
+                    previousPanel.Purge();
 
                 if (isNewPanel)
                 {
