@@ -112,9 +112,9 @@ namespace Game
                 if (!mute)
                 {
                     if (!string.IsNullOrEmpty(nodePath))
-                        Debug.LogError($"[SetImage] node {go.name} path {nodePath} has no Text component");
+                        Debug.LogError($"[SetText] node {go.name} path {nodePath} has no Text component");
                     else
-                        Debug.LogError($"[SetImage] node {go.name} has no Text component");
+                        Debug.LogError($"[SetText] node {go.name} has no Text component");
                 }
                 return;
             }

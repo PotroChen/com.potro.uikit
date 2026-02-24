@@ -4,6 +4,7 @@ using UnityEngine.AddressableAssets;
 
 namespace GameFramework.UIKit
 {
+    //TODO 缺少OnOpen,OnClose
     public class UIPanel
     {
         public string Name { get; private set; }

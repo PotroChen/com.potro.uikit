@@ -122,7 +122,7 @@ namespace GameFramework.UIKit
                 nextPanel = m_PanelHistory.Pop();
             }
 
-            if (nextPanel != null)
+            if (nextPanel != null && !nextPanel.IsPermanent)
             {
                 nextPanel.Load(data);
             }
