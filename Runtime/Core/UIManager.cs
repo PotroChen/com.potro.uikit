@@ -33,14 +33,32 @@ namespace GameFramework.UIKit
             instance.Goback_internal(data);
         }
 
+        /// <summary>
+        /// 打开一个面板（独立于 Goto/GoBack 的管理方式）。
+        /// 若该面板已被管理，则打开失败并输出警告。
+        /// </summary>
+        public static void Open<TPanel>(IData data = null) where TPanel : UIPanel, new()
+        {
+            instance.Open_Internal<TPanel>(data);
+        }
+
+        /// <summary>
+        /// 关闭一个面板（独立于 Goto/GoBack 的管理方式）。
+        /// 只关闭自身并从窗口栈中移除，不影响其他面板。
+        /// </summary>
+        public static void Close<TPanel>() where TPanel : UIPanel
+        {
+            instance.Close_Internal<TPanel>();
+        }
+
         internal static void AttachToLayer(GameObject uiGo, UILayer uILayer)
         {
             instance.m_uiRoot.AttachToLayer(uiGo, uILayer);
         }
 
         private UIPanel m_CurrentPanel;
-        //界面切换堆栈
-        private UIPanelHistory m_PanelHistory = new UIPanelHistory();
+        //窗口堆栈
+        private UIPanelStack m_PanelStack = new UIPanelStack();
         [SerializeField]
         private UIRoot m_uiRoot;
 
@@ -76,9 +94,9 @@ namespace GameFramework.UIKit
             bool isNewPanel = false;
 
             UIPanel nextPanel = null;
-            if (m_PanelHistory.Contains(panelName))
+            if (m_PanelStack.Contains(panelName))
             {
-                nextPanel = m_PanelHistory.Pop(panelName);
+                nextPanel = m_PanelStack.Pop(panelName);
             }
             else
             {
@@ -99,7 +117,7 @@ namespace GameFramework.UIKit
 
                 if (isNewPanel)
                 {
-                    m_PanelHistory.Push(previousPanel);
+                    m_PanelStack.Push(previousPanel);
                 }
             }
 
@@ -117,9 +135,9 @@ namespace GameFramework.UIKit
             }
 
             UIPanel nextPanel = null;
-            if (m_PanelHistory.Count > 0)
+            if (m_PanelStack.Count > 0)
             {
-                nextPanel = m_PanelHistory.Pop();
+                nextPanel = m_PanelStack.Pop();
             }
 
             if (nextPanel != null && !nextPanel.IsPermanent)
@@ -134,6 +152,36 @@ namespace GameFramework.UIKit
             }
 
             CurrentPanel = nextPanel;
+        }
+
+        private void Open_Internal<TPanel>(IData data) where TPanel : UIPanel, new()
+        {
+            string panelName = UIPanel.GetName<TPanel>();
+
+            // 已被管理（在栈中或是当前主面板）则打开失败
+            if (m_PanelStack.Contains(panelName) || (CurrentPanel != null && CurrentPanel.Name.Equals(panelName)))
+            {
+                Debug.LogWarning($"[UIManager] Open failed: panel '{panelName}' is already open.");
+                return;
+            }
+
+            UIPanel panel = new TPanel();
+            panel.Load(data);
+            m_PanelStack.Push(panel);
+        }
+
+        private void Close_Internal<TPanel>() where TPanel : UIPanel
+        {
+            string panelName = UIPanel.GetName<TPanel>();
+
+            UIPanel panel = m_PanelStack.Remove(panelName);
+            if (panel != null)
+            {
+                panel.Purge();
+                return;
+            }
+
+            Debug.LogWarning($"[UIManager] Close failed: panel '{panelName}' is not managed by Open/Close.");
         }
     }
 

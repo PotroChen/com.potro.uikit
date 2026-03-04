@@ -4,7 +4,6 @@ using UnityEngine.AddressableAssets;
 
 namespace GameFramework.UIKit
 {
-    //TODO 缺少OnOpen,OnClose
     public class UIPanel
     {
         public string Name { get; private set; }
@@ -66,6 +65,7 @@ namespace GameFramework.UIKit
                 m_Root.GetComponent<UIParameterBinder>()?.Init();
                 BindParameter();
                 OnLoaded();
+                OnOpen();
                 if(m_Root.activeSelf)
                     OnShow();
             }
@@ -76,6 +76,7 @@ namespace GameFramework.UIKit
         {
             if (m_Root.activeSelf)
                 OnHide();
+            OnClose();
             OnPurge();
             Object.Destroy(m_Root);
             m_Root = null;
@@ -116,6 +117,16 @@ namespace GameFramework.UIKit
         {
 
         }
+
+        /// <summary>
+        /// 被 UIManager 加入管理时调用（面板开启，Prefab 已加载完毕）
+        /// </summary>
+        protected virtual void OnOpen() { }
+
+        /// <summary>
+        /// 被 UIManager 移除管理时调用（面板关闭，资源尚未释放）
+        /// </summary>
+        protected virtual void OnClose() { }
 
         protected virtual void OnShow() { }
 
