@@ -5,7 +5,8 @@
         "Unity.Addressables",
         "Unity.ResourceManager",
         "com.potro.core.runtime",
-        "com.potro.addressableextensions"
+        "com.potro.addressableextensions",
+        "MackySoft.SerializeReferenceExtensions"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
