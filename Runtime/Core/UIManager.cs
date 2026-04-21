@@ -51,6 +51,16 @@ namespace GameFramework.UIKit
             instance.Close_Internal<TPanel>();
         }
 
+        public static void HideAll()
+        {
+            instance.m_uiRoot.transform.position = Vector3.up * 1000f;
+        }
+
+        public static void RevertHideAll()
+        {
+            instance.m_uiRoot.transform.position = Vector3.zero;
+        }
+
         internal static void AttachToLayer(GameObject uiGo, UILayer uILayer)
         {
             instance.m_uiRoot.AttachToLayer(uiGo, uILayer);
