@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 
@@ -16,6 +17,11 @@ namespace GameFramework.UIKit
         }
 
         private static UIManager instance = null;
+
+        public static void Init(Func<ToastPanelBase> newToastUI)
+        {
+            instance.newToastUIFunc = newToastUI;
+        }
 
         /// <summary>
         /// 切换下一个界面
@@ -88,6 +94,7 @@ namespace GameFramework.UIKit
         {
             if (instance == this)
             {
+                DisposeToastPanel();
                 instance = null;
             }
         }
@@ -193,6 +200,41 @@ namespace GameFramework.UIKit
 
             Debug.LogWarning($"[UIManager] Close failed: panel '{panelName}' is not managed by Open/Close.");
         }
+
+        #region Toast
+        ToastPanelBase toastPanel;
+        Func<ToastPanelBase> newToastUIFunc;
+        public void ToastInfo(string msg)
+        {
+            var toastPanel = GetOrCreateToastPanel();
+            toastPanel.ToastInfo(msg);
+        }
+
+        public ToastPanelBase GetOrCreateToastPanel()
+        {
+            if (toastPanel == null)
+            {
+                if (newToastUIFunc == null)
+                {
+                    throw new Exception("Need inject NewToastUIFunc");
+                }
+                toastPanel = newToastUIFunc.Invoke();
+                toastPanel.Load(null);
+            }
+            return toastPanel;
+        }
+
+        public void DisposeToastPanel()
+        {
+            if (toastPanel != null)
+            {
+                toastPanel.Purge();
+                toastPanel = null;
+            }
+        }
+
+
+        #endregion
     }
 
 }
