@@ -204,10 +204,22 @@ namespace GameFramework.UIKit
         #region Toast
         ToastPanelBase toastPanel;
         Func<ToastPanelBase> newToastUIFunc;
-        public void ToastInfo(string msg)
+        public static void ToastInfo(string msg)
         {
-            var toastPanel = GetOrCreateToastPanel();
+            var toastPanel = instance.GetOrCreateToastPanel();
             toastPanel.ToastInfo(msg);
+        }
+
+        public static void ToastWarning(string msg)
+        {
+            var toastPanel = instance.GetOrCreateToastPanel();
+            toastPanel.ToastWarning(msg);
+        }
+
+        public static void ToastError(string msg)
+        {
+            var toastPanel = instance.GetOrCreateToastPanel();
+            toastPanel.ToastError(msg);
         }
 
         public ToastPanelBase GetOrCreateToastPanel()
@@ -219,12 +231,12 @@ namespace GameFramework.UIKit
                     throw new Exception("Need inject NewToastUIFunc");
                 }
                 toastPanel = newToastUIFunc.Invoke();
-                toastPanel.Load(null);
+                toastPanel.Load(null,true);
             }
             return toastPanel;
         }
 
-        public void DisposeToastPanel()
+        private void DisposeToastPanel()
         {
             if (toastPanel != null)
             {

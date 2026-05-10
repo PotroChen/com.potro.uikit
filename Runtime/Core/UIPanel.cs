@@ -50,7 +50,7 @@ namespace GameFramework.UIKit
         }
 
 
-        internal virtual void Load(IData initData)
+        internal virtual void Load(IData initData,bool immediate = false)
         {
             if (initData != null)
             {
@@ -69,7 +69,9 @@ namespace GameFramework.UIKit
                 if(m_Root.activeSelf)
                     OnShow();
             }
-            resLoader.LoadAssetAsync<GameObject>(ConfigData.PrefabPath, OnLoadCompleted);
+            var handle = resLoader.LoadAssetAsync<GameObject>(ConfigData.PrefabPath, OnLoadCompleted);
+            if(immediate)
+                handle.WaitForCompletion();
         }
 
         internal virtual void Purge()
